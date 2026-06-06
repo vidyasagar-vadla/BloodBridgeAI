@@ -1,24 +1,14 @@
-import random
 import datetime
 from typing import Dict, Any, List
 
 
 class MockAIService:
-    """Mock AI service that simulates model loading and predictions.
-    Real AI/ML models can be plugged in later without changing the frontend."""
-
-    @staticmethod
-    def simulate_loading(steps: List[str]) -> List[Dict[str, str]]:
-        """Simulate model loading steps"""
-        result = []
-        for step in steps:
-            result.append({"step": step, "status": "completed"})
-        return result
+    """Mock AI service using simple, transparent calculations for demo purposes.
+    No actual AI/ML models are used - just easy-to-understand arithmetic."""
 
     @staticmethod
     def predict_blood_requirement(patient_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Mock AI prediction for blood requirement"""
-        # Simulate based on patient data
+        """Simple calculation-based blood requirement prediction (no AI model)"""
         hemoglobin = patient_data.get("hemoglobin_level", 10)
         last_transfusion = patient_data.get("last_transfusion_date")
         interval = patient_data.get("transfusion_interval", 15)
@@ -29,7 +19,7 @@ class MockAIService:
         else:
             days_since = interval
 
-        # Mock prediction logic
+        # Simple risk calculation based on hemoglobin thresholds
         risk_level = "Low"
         if hemoglobin < 7:
             risk_level = "Critical"
@@ -38,9 +28,26 @@ class MockAIService:
         elif hemoglobin < 10:
             risk_level = "Moderate"
 
+        # Calculate days until next requirement
         days_until_required = max(1, interval - days_since)
+
+        # Calculate units needed based on hemoglobin level
+        # Lower hemoglobin = more units needed
         units = 1 if hemoglobin > 8 else 2 if hemoglobin > 6 else 3
-        confidence = random.randint(85, 98)
+
+        # Simple confidence based on how far from threshold boundaries
+        # Higher confidence when hemoglobin is clearly in one risk category
+        if hemoglobin < 6.5 or hemoglobin > 10.5:
+            confidence = 95
+        elif hemoglobin < 7.5 or (hemoglobin > 9.5 and hemoglobin < 10.5):
+            confidence = 90
+        elif hemoglobin < 8.5 or (hemoglobin > 8.5 and hemoglobin < 9.5):
+            confidence = 85
+        else:
+            confidence = 80
+
+        # Hemoglobin trend based on last recorded value
+        hemoglobin_trend = "decreasing" if hemoglobin < 10 else "stable"
 
         return {
             "predicted_date": (datetime.date.today() + datetime.timedelta(days=days_until_required)).isoformat(),
@@ -48,18 +55,16 @@ class MockAIService:
             "required_units": units,
             "risk_level": risk_level,
             "confidence_percentage": confidence,
-            "hemoglobin_trend": "decreasing" if hemoglobin < 10 else "stable",
+            "hemoglobin_trend": hemoglobin_trend,
         }
 
     @staticmethod
     def find_compatible_donors(patient_data: Dict[str, Any], all_donors: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Mock AI donor matching"""
+        """Simple donor matching using blood group compatibility rules (no AI model)"""
         blood_group = patient_data.get("blood_group", "")
         patient_city = patient_data.get("city", "")
-        patient_lat = patient_data.get("latitude")
-        patient_lng = patient_data.get("longitude")
 
-        # Compatibility matrix
+        # Compatibility matrix (standard medical compatibility)
         compatible = {
             "A+": ["A+", "A-", "O+", "O-"],
             "A-": ["A-", "O-"],
@@ -76,8 +81,14 @@ class MockAIService:
 
         for donor in all_donors:
             if donor.get("blood_group") in compatible_groups and donor.get("availability") != "Not Available":
-                # Calculate mock distance
-                distance = random.randint(1, 50)
+                # Simple distance calculation based on city match
+                # Same city = closer distance
+                if donor.get("city", "").lower() == patient_city.lower():
+                    distance = 0 if patient_city else 10
+                else:
+                    # Estimate distance based on state match
+                    distance = 20 if donor.get("state") else 50
+
                 matched.append({
                     "id": donor.get("id"),
                     "name": donor.get("full_name"),
@@ -91,44 +102,49 @@ class MockAIService:
                     "phone": donor.get("mobile"),
                 })
 
-        # Sort by distance and reliability
+        # Sort by distance (closest first), then by reliability (highest first)
         matched.sort(key=lambda x: (x["distance"], -x["reliability_score"]))
         return matched[:10]  # Return top 10
 
     @staticmethod
     def demand_analysis(all_requests: List[Dict[str, Any]], all_donors: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Mock demand analysis for donors"""
+        """Simple demand analysis using basic counting and arithmetic (no AI model)"""
         blood_group_counts = {}
         for req in all_requests:
             bg = req.get("blood_group", "Unknown")
             blood_group_counts[bg] = blood_group_counts.get(bg, 0) + 1
 
-        nearby_requests = [
-            {
+        nearby_requests = []
+        for i, req in enumerate(all_requests[:5]):
+            # Simple distance based on index (just for demo)
+            distance = (i + 1) * 5  # 5, 10, 15, 20, 25 km
+            nearby_requests.append({
                 "id": req.get("id"),
                 "patient_name": req.get("patient_name", "Unknown"),
                 "blood_group": req.get("blood_group"),
                 "city": req.get("city"),
                 "is_emergency": req.get("is_emergency", False),
-                "distance": random.randint(1, 30),
-            }
-            for req in all_requests[:5]
-        ]
+                "distance": distance,
+            })
+
+        # Simple forecast using basic arithmetic
+        total = len(all_requests)
+        sorted_groups = sorted(blood_group_counts.items(), key=lambda x: x[1], reverse=True)[:3]
 
         return {
-            "total_patients_needing_blood": len(all_requests),
+            "total_patients_needing_blood": total,
             "blood_group_demand": blood_group_counts,
             "nearby_requests": nearby_requests,
             "forecast": {
-                "next_week_demand": len(all_requests) + random.randint(1, 10),
-                "next_month_demand": len(all_requests) * 3 + random.randint(5, 20),
-                "high_demand_groups": sorted(blood_group_counts.items(), key=lambda x: x[1], reverse=True)[:3],
+                "next_week_demand": total + (total // 4) + 1,  # ~25% increase
+                "next_month_demand": total * 3 + (total // 2),  # ~3.5x current
+                "high_demand_groups": sorted_groups,
             }
         }
 
     @staticmethod
     def admin_analytics(patients: List[Dict], donors: List[Dict], requests: List[Dict]) -> Dict[str, Any]:
-        """Mock admin analytics predictions"""
+        """Simple admin analytics using basic aggregation (no AI model)"""
         state_demand = {}
         for p in patients:
             state = p.get("state", "Unknown")
@@ -146,6 +162,13 @@ class MockAIService:
                 availability_stats[avail] += 1
 
         critical_patients = sum(1 for p in patients if p.get("hemoglobin_level", 10) < 7)
+        top_states = list(state_demand.keys())[:3]
+        top_blood_groups = [bg for bg, count in sorted(blood_group_demand.items(), key=lambda x: x[1], reverse=True)[:2]]
+
+        # Simple forecast using current data
+        total_requests = len(requests)
+        next_month_forecast = total_requests + (total_requests // 3) + 5
+        next_quarter_forecast = total_requests * 3 + (total_requests // 2) + 15
 
         return {
             "state_wise_demand": state_demand,
@@ -153,19 +176,19 @@ class MockAIService:
             "donor_availability": availability_stats,
             "emergency_requests": sum(1 for r in requests if r.get("is_emergency")),
             "predictions": {
-                "predicted_shortage_areas": list(state_demand.keys())[:3],
-                "high_demand_blood_groups": [bg for bg, count in sorted(blood_group_demand.items(), key=lambda x: x[1], reverse=True)[:2]],
+                "predicted_shortage_areas": top_states,
+                "high_demand_blood_groups": top_blood_groups,
                 "critical_patient_count": critical_patients,
                 "future_blood_requirement_forecast": {
-                    "next_month": len(requests) + random.randint(10, 30),
-                    "next_quarter": len(requests) * 3 + random.randint(30, 100),
+                    "next_month": next_month_forecast,
+                    "next_quarter": next_quarter_forecast,
                 }
             }
         }
 
     @staticmethod
     def chatbot_response(user_role: str, message: str, context: Dict[str, Any] = None) -> str:
-        """Mock chatbot responses"""
+        """Simple rule-based chatbot responses (no AI model)"""
         message_lower = message.lower()
 
         # Patient queries
@@ -196,7 +219,7 @@ class MockAIService:
                 return "There are 8 critical patients and 12 emergency requests active right now. States with highest demand: Uttar Pradesh, Bihar, West Bengal."
             if "analytics" in message_lower or "report" in message_lower:
                 return "Total registered: 1,234 patients, 892 donors. Monthly active: 456 patients, 234 donors. Blood request fulfillment rate: 78%. Recommend increasing donor registration drives in rural areas."
-            if "shortage" in message_lower or "shortage" in message_lower:
+            if "shortage" in message_lower:
                 return "Predicted blood shortage areas for next month: Rural Uttar Pradesh, Bihar, and parts of Madhya Pradesh. Consider organizing mobile donation camps in these regions."
 
         # Default responses

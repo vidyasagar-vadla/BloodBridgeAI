@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import date, datetime, timedelta
-import random
 from ..database import get_db
 from ..models.models import (
     User, UserRole, Patient, Donor, BloodRequest, RequestAssignment,
@@ -87,13 +86,8 @@ def predict_blood_requirement(current_user: User = Depends(get_current_user), db
         "age": patient.age,
         "weight": patient.weight,
     }
-    loading_steps = mock_ai.simulate_loading([
-        "Loading Prediction Model...",
-        "Analyzing Patient History...",
-        "Generating Prediction..."
-    ])
     prediction = mock_ai.predict_blood_requirement(patient_data)
-    return {"loading_steps": loading_steps, "prediction": prediction}
+    return {"prediction": prediction}
 
 
 @router.get("/find-donors")
@@ -124,14 +118,9 @@ def find_donors(current_user: User = Depends(get_current_user), db: Session = De
             "longitude": d.longitude,
         })
 
-    loading_steps = mock_ai.simulate_loading([
-        "Loading Matching Model...",
-        "Searching Compatible Donors...",
-        "Ranking Donors..."
-    ])
     matched_donors = mock_ai.find_compatible_donors(patient_data, donor_list)
 
-    return {"loading_steps": loading_steps, "donors": matched_donors}
+    return {"donors": matched_donors}
 
 
 class CreateBloodRequest(BaseModel):

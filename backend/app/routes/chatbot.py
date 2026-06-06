@@ -20,12 +20,6 @@ def chatbot_chat(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    loading_steps = mock_ai.simulate_loading([
-        "Loading AI Model...",
-        "Processing Query...",
-        "Generating Response..."
-    ])
-
     response = mock_ai.chatbot_response(current_user.role.value, request.message)
 
     # Save conversation
@@ -39,7 +33,6 @@ def chatbot_chat(
     db.commit()
 
     return {
-        "loading_steps": loading_steps,
         "response": response,
         "conversation_id": conversation.id,
     }

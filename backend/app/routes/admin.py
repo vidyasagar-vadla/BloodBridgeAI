@@ -470,11 +470,6 @@ def run_analysis(
         "is_emergency": r.is_emergency,
     } for r in requests_data]
 
-    loading_steps = mock_ai.simulate_loading([
-        "Loading Forecasting Model...",
-        "Processing Historical Data...",
-        "Generating Insights..."
-    ])
     analytics = mock_ai.admin_analytics(patients_list, donors_list, requests_list)
 
-    return {"loading_steps": loading_steps, "analytics": analytics}
+    return {"analytics": analytics}

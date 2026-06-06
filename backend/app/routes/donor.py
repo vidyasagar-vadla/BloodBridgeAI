@@ -99,13 +99,9 @@ def patient_demand_analysis(
         "city": d.city,
     } for d in all_donors]
 
-    loading_steps = mock_ai.simulate_loading([
-        "Loading Demand Prediction Model...",
-        "Analyzing Patient Requests..."
-    ])
     analysis = mock_ai.demand_analysis(request_list, donor_list)
 
-    return {"loading_steps": loading_steps, "analysis": analysis}
+    return {"analysis": analysis}
 
 
 @router.get("/incoming-requests")
