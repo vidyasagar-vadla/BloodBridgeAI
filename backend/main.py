@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine, Base, SessionLocal
 from app.models.models import User, UserRole, Patient, Donor
-from app.services.auth import get_password_hash 
+from app.services.auth import get_password_hash
 from app.routes import auth, patient, donor, admin, chatbot
 
 app = FastAPI(
@@ -16,7 +16,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "*"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "https://main.d2haxtphae6f08.amplifyapp.com/login", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
